@@ -75,34 +75,35 @@ function initLoginInfo() {
 const isRemember = useStorage('isRemember', false)
 const loading = ref(false)
 async function handleLogin() {
-  const { name, password } = loginInfo.value
-  if (!name || !password) {
-    $message.warning('请输入用户名和密码')
-    return
-  }
-  try {
-    loading.value = true
-    $message.loading('正在验证...')
-    const res = await api.login({ name, password: password.toString() })
-    $message.success('登录成功')
-    setToken(res.data.token)
-    if (isRemember.value) {
-      lStorage.set('loginInfo', { name, password })
-    } else {
-      lStorage.remove('loginInfo')
+    const { name, password } = loginInfo.value
+    //   if (!name || !password) {
+    //     $message.warning('请输入用户名和密码')
+    //     return
+    //   }
+    if(!name || !password) return $message.warning('请输入用户名和密码')
+    try {
+        loading.value = true
+        $message.loading('正在验证...')
+        const res = await api.login({ name, password: password.toString() })
+        $message.success('登录成功')
+        setToken(res.data.token)
+        if (isRemember.value) {
+            lStorage.set('loginInfo', { name, password })
+        } else {
+            lStorage.remove('loginInfo')
+        }
+        await addDynamicRoutes()
+        if (query.redirect) {
+            const path = query.redirect
+            Reflect.deleteProperty(query, 'redirect')
+            router.push({ path, query })
+        } else {
+            router.push('/')
+        }
+    } catch (error) {
+        console.error(error)
+        $message.removeMessage()
     }
-    await addDynamicRoutes()
-    if (query.redirect) {
-      const path = query.redirect
-      Reflect.deleteProperty(query, 'redirect')
-      router.push({ path, query })
-    } else {
-      router.push('/')
-    }
-  } catch (error) {
-    console.error(error)
-    $message.removeMessage()
-  }
-  loading.value = false
+    loading.value = false
 }
 </script>
